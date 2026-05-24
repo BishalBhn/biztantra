@@ -1253,13 +1253,42 @@
   function closeModalOutside(e) {
     if (e.target === document.getElementById('modalOverlay')) closeModal();
   }
-  function submitModal() {
+  async function submitModal() {
     const n = document.getElementById('mName').value.trim();
     const em = document.getElementById('mEmail').value.trim();
+    const d = document.getElementById('mDate').value;
+    const note = document.getElementById('mNote').value.trim();
     if (!n || !em) { alert('Please fill in your name and email.'); return; }
-    document.getElementById('modalForm').style.display = 'none';
-    document.getElementById('modalSuccess').style.display = 'block';
-    setTimeout(closeModal, 3500);
+
+    const btn = document.querySelector('#modalForm .btn-primary');
+    btn.textContent = 'Sending...';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch('https://formspree.io/f/xkoevwel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          name: n,
+          email: em,
+          preferred_date: d,
+          message: note,
+          _subject: `New Booking Request from ${n} — Biz Tantra`
+        })
+      });
+
+      if (res.ok) {
+        document.getElementById('modalForm').style.display = 'none';
+        document.getElementById('modalSuccess').style.display = 'block';
+        setTimeout(closeModal, 3500);
+      } else {
+        throw new Error('Failed');
+      }
+    } catch {
+      btn.textContent = 'Confirm Booking →';
+      btn.disabled = false;
+      alert('Something went wrong. Please email bishal@biztantra.com directly.');
+    }
   }
 
   // Main form — submits to Formspree
